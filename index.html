@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1F3A">
+<title>Cockpit CL — Mobile</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root{color-scheme:light;
+ --navy:#0B1F3A;--navy2:#061227;--ink:#1A2A44;--ice:#E8EEF7;--sand:#F4F1EA;
+ --gold:#C8A24B;--gold-dk:#9E7F38;--teal:#2C7A7B;--gray:#5B6677;--red:#B0413E;
+ --amber:#D08F2C;--rule:#C9D2E0;--pos:#1E7A6B;--neg:#B0413E;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--sand);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;padding-bottom:30px}
+.hdr{background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:5;box-shadow:0 1px 0 var(--gold)}
+.kick{font:600 9px/1 sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.hdr h1{font-family:Georgia,serif;font-size:19px;margin-top:2px}
+.hdr .sub{font-size:10px;color:#B9C6DC;margin-top:3px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px 4px}
+.kpi{background:#fff;border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:8px;padding:9px 11px}
+.kpi.g{border-top-color:var(--gold)}.kpi.t{border-top-color:var(--teal)}.kpi.a{border-top-color:var(--amber)}
+.kpi .k{font:600 8.5px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+.kpi .v{font:700 17px/1.15 Georgia,serif;color:var(--navy);margin-top:4px}
+.kpi .d{font-size:10px;color:var(--gray);margin-top:2px}
+.sec{margin:12px 14px 0}
+.sec h2{font-family:Georgia,serif;font-size:14px;color:var(--navy);margin-bottom:7px;display:flex;align-items:center;gap:8px}
+.sec h2::after{content:"";flex:1;height:1px;background:var(--rule)}
+.card{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:11px}
+.donutbox{position:relative;height:170px}
+.leg{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px 10px}
+.leg span{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--ink)}
+.leg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);border-radius:16px;padding:4px 10px;background:#fff;font-size:11.5px;display:flex;gap:6px;align-items:baseline}
+.chip b{font-family:Georgia,serif;color:var(--navy)}
+.pos{color:var(--pos);font-weight:700}.neg{color:var(--neg);font-weight:700}.zero{color:var(--gray)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--navy);color:#fff;font:600 8.5px/1.2 sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:7px 6px;text-align:right;position:sticky;top:64px}
+th:first-child{text-align:left;border-radius:6px 0 0 0}th:last-child{border-radius:0 6px 0 0}
+td{padding:7px 6px;text-align:right;border-bottom:1px solid #EEEAE0;white-space:nowrap;font-variant-numeric:tabular-nums}
+td:first-child{text-align:left}
+.tk{font-family:Georgia,serif;font-weight:700;color:var(--navy);font-size:12.5px}
+.lay{display:block;font-size:9px;color:var(--gray);margin-top:1px}
+.pesob{display:inline-block;height:5px;border-radius:2px;background:var(--gold);opacity:.85;vertical-align:middle}
+.wl td{font-size:11.5px}
+.wl .nota{white-space:normal;font-size:10px;color:#3a4658;text-align:left}
+.state{padding:56px 20px;text-align:center;color:var(--gray)}
+.spin{width:24px;height:24px;border:3px solid var(--rule);border-top-color:var(--gold);border-radius:50%;display:inline-block;animation:s .8s linear infinite;margin-bottom:10px}
+@keyframes s{to{transform:rotate(360deg)}}
+.err{color:var(--red);font-size:12.5px;max-width:420px;margin:0 auto;line-height:1.5}
+.foot{margin:16px 14px 0;color:var(--gray);font-size:9.5px;line-height:1.5;border-top:1px solid var(--rule);padding-top:8px}
+.upd{font-size:10px;color:#cdd8ea;text-align:right;float:right;margin-top:-32px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="kick">Capital Lens · ao vivo</div>
+  <h1>Cockpit — Carteira AI Infra</h1>
+  <div class="sub">GOOGLEFINANCE ~15-20 min · publicação ~5 min · <span id="upd">carregando…</span></div>
+</div>
+<div id="root"><div class="state"><div class="spin"></div><div>Lendo o Cockpit…</div></div></div>
+<div class="foot">Fonte: aba Feed publicada do Cockpit Live (Google Sheets). G/P não realizado, sem IR/corretagem. Recarrega sozinho a cada 5 min. Material de acompanhamento pessoal.</div>
+<script>
+// >>> URL do CSV publicado da aba Feed (File > Publicar na web > aba Feed > CSV) <<<
+const FEED_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRPexk4MHu9YoW8H-boS8eThBevVRNDPefv9TbHNpyz8wRwdfdG8YGUEifpcZRXatSn6zlaxH9aTu7F/pub?gid=628478336&single=true&output=csv';
+
+function num(s){if(s==null)return NaN;s=String(s).trim().replace(/^"|"$/g,'').replace(/[%\s]/g,'');
+ if(s===''||s==='—'||s==='-')return NaN;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s);}
+const fU=n=>isFinite(n)?'US$ '+n.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+const fB=n=>isFinite(n)?'R$ '+n.toLocaleString('pt-BR',{maximumFractionDigits:0}):'—';
+const fP=n=>isFinite(n)?(n>0?'+':'')+n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'—';
+const fX=n=>isFinite(n)?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+const cls=n=>!isFinite(n)||n===0?'zero':(n>0?'pos':'neg');
+const MC={'Memory/HBM':'#C8A24B','Storage NAND':'#D08F2C','Storage HDD':'#D08F2C','Storage Ctrl':'#D08F2C',
+ 'Custom Silicon':'#2C7A7B','Foundry':'#2C7A7B','Hyperscaler':'#0B1F3A','Networking':'#3E6E8E','Networking Opt':'#3E6E8E','Networking Conn':'#3E6E8E',
+ 'Phys Infra Cooling':'#4FA0A1','Phys Infra Grid':'#4FA0A1','Financing':'#7A5C99','Industrial Aerospace':'#5B6677',
+ 'Test & Measurement':'#8C8A3E','Test/Meas':'#8C8A3E','Quantum':'#B0413E','Caixa USD':'#C9D2E0'};
+
+function parseCSV(t){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else{ if(c==='"')q=true; else if(c===','){row.push(cur);cur='';}
+      else if(c==='\n'||c==='\r'){ if(cur!==''||row.length){row.push(cur);rows.push(row);row=[];cur='';} }
+      else cur+=c; } }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+function render(rows){
+  const pos=[],watch=[];let meta={};
+  for(const r of rows){
+    const t=(r[0]||'').trim().toUpperCase();
+    if(t==='META') meta={fx:num(r[2]),caixa:num(r[3]),tot:num(r[4]),gp:num(r[5])};
+    else if(t==='POS') pos.push({tk:r[1],layer:r[2],px:num(r[3]),dd:num(r[4]),val:num(r[5]),peso:num(r[6]),gp:num(r[7]),gpp:num(r[8])});
+    else if(t==='WATCH') watch.push({tk:r[1],layer:r[2],px:num(r[3]),dd:num(r[4]),nota:r[5]||''});
+  }
+  if(!pos.length){document.getElementById('root').innerHTML='<div class="state err">Feed lido, mas sem posições — confira a aba Feed no Sheet.</div>';return;}
+  pos.sort((a,b)=>b.val-a.val);
+  const totBRL=meta.tot*meta.fx, maxP=Math.max(...pos.map(p=>p.peso||0));
+  const byD=[...pos].filter(p=>isFinite(p.dd)).sort((a,b)=>b.dd-a.dd);
+  const agg={};for(const p of pos){agg[p.layer]=(agg[p.layer]||0)+(p.val||0);}
+  if(meta.caixa>0)agg['Caixa USD']=(agg['Caixa USD']||0)+meta.caixa;
+  const alloc=Object.entries(agg).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+
+  let h='<div class="kpis">';
+  h+=`<div class="kpi"><div class="k">Patrimônio US$</div><div class="v">${fU(meta.tot)}</div><div class="d">câmbio ${isFinite(meta.fx)?meta.fx.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</div></div>`;
+  h+=`<div class="kpi g"><div class="k">Patrimônio R$</div><div class="v">${fB(totBRL)}</div><div class="d">${pos.length} posições + caixa</div></div>`;
+  h+=`<div class="kpi t"><div class="k">G/P aberto</div><div class="v ${cls(meta.gp)}">${isFinite(meta.gp)?(meta.gp>0?'+':'')+fU(meta.gp).replace('US$ ','US$ '):'—'}</div></div>`;
+  h+=`<div class="kpi a"><div class="k">Caixa US$</div><div class="v">${fU(meta.caixa)}</div><div class="d">${isFinite(meta.caixa/meta.tot)?(meta.caixa/meta.tot*100).toFixed(1)+'% da carteira':''}</div></div>`;
+  h+='</div>';
+
+  h+='<div class="sec"><h2>Alocação por camada</h2><div class="card"><div class="donutbox"><canvas id="dn"></canvas></div><div class="leg">'+
+     alloc.map(a=>`<span><i style="background:${MC[a.k]||'#5B6677'}"></i>${a.k} ${(a.v/meta.tot*100).toFixed(0)}%</span>`).join('')+'</div></div></div>';
+
+  h+='<div class="sec"><h2>Movimento do dia</h2><div class="card"><div class="chips">'+
+     byD.slice(0,3).map(p=>`<div class="chip"><b>${p.tk}</b><span class="pos">${fP(p.dd)}</span></div>`).join('')+
+     byD.slice(-3).reverse().map(p=>`<div class="chip"><b>${p.tk}</b><span class="neg">${fP(p.dd)}</span></div>`).join('')+'</div></div></div>';
+
+  h+='<div class="sec"><h2>Posições</h2><div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Ativo</th><th>Peso</th><th>D dia</th><th>Valor</th><th>G/P %</th></tr></thead><tbody>';
+  for(const p of pos){
+    const bw=maxP>0?Math.max(3,p.peso/maxP*34):0;
+    h+=`<tr><td><span class="tk">${p.tk}</span><span class="lay">${p.layer||''}</span></td>`+
+       `<td>${isFinite(p.peso)?p.peso.toFixed(1)+'%':'—'} <span class="pesob" style="width:${bw}px"></span></td>`+
+       `<td class="${cls(p.dd)}">${fP(p.dd)}</td><td>${fU(p.val)}</td><td class="${cls(p.gpp)}">${fP(p.gpp)}</td></tr>`;
+  }
+  h+='</tbody></table></div></div>';
+
+  if(watch.length){
+    h+='<div class="sec"><h2>Watchlist</h2><div class="card" style="padding:0;overflow:hidden"><table class="wl"><thead><tr><th>Ativo</th><th>Preço</th><th>D dia</th><th>Nota</th></tr></thead><tbody>'+
+      watch.map(w=>`<tr><td><span class="tk">${w.tk}</span><span class="lay">${w.layer||''}</span></td><td>${fX(w.px)}</td><td class="${cls(w.dd)}">${fP(w.dd)}</td><td class="nota">${w.nota}</td></tr>`).join('')+
+      '</tbody></table></div></div>';
+  }
+  document.getElementById('root').innerHTML=h;
+  document.getElementById('upd').textContent='atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const c=document.getElementById('dn');
+  if(c&&window.Chart){new Chart(c,{type:'doughnut',data:{labels:alloc.map(a=>a.k),
+    datasets:[{data:alloc.map(a=>a.v),backgroundColor:alloc.map(a=>MC[a.k]||'#5B6677'),borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:x=>` ${x.label}: ${fU(x.parsed)}`}}}}});}
+}
+async function load(){
+  const root=document.getElementById('root');
+  if(FEED_URL.startsWith('COLE_AQUI')){root.innerHTML='<div class="state err">Falta plugar a URL do feed publicado (File → Publicar na web → aba Feed → CSV) na constante FEED_URL deste arquivo.</div>';return;}
+  try{
+    const r=await fetch(FEED_URL+(FEED_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    render(parseCSV(await r.text()));
+  }catch(e){root.innerHTML='<div class="state err">Não consegui ler o feed agora ('+(e.message||e)+').<br>Verifique a conexão e recarregue.</div>';}
+}
+load();
+setInterval(load, 5*60*1000);
+</script>
+</body>
+</html>
