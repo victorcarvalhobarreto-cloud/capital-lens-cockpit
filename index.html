@@ -3,153 +3,138 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0B1F3A">
-<title>Cockpit CL — Mobile</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<title>Cockpit CL</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <style>
-:root{color-scheme:light;
- --navy:#0B1F3A;--navy2:#061227;--ink:#1A2A44;--ice:#E8EEF7;--sand:#F4F1EA;
- --gold:#C8A24B;--gold-dk:#9E7F38;--teal:#2C7A7B;--gray:#5B6677;--red:#B0413E;
- --amber:#D08F2C;--rule:#C9D2E0;--pos:#1E7A6B;--neg:#B0413E;}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--sand);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;padding-bottom:30px}
-.hdr{background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:5;box-shadow:0 1px 0 var(--gold)}
-.kick{font:600 9px/1 sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
-.hdr h1{font-family:Georgia,serif;font-size:19px;margin-top:2px}
-.hdr .sub{font-size:10px;color:#B9C6DC;margin-top:3px}
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px 4px}
-.kpi{background:#fff;border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:8px;padding:9px 11px}
+:root{--navy:#0B1F3A;--ink:#1A2A44;--gold:#C8A24B;--teal:#2C7A7B;--gray:#5B6677;--rule:#C9D2E0;--pos:#1E7A6B;--neg:#B0413E;--bg:#F4F1EA;--amber:#D08F2C}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.hdr{background:var(--navy);color:#fff;padding:16px 16px 12px;box-shadow:0 1px 0 var(--gold)}
+.kick{font:600 10px/1 -apple-system,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.ttl{font:700 20px/1.2 Georgia,serif;margin-top:4px}
+.upd{font-size:11px;color:#B9C6DC;margin-top:4px}
+.wrap{padding:0 16px 32px;max-width:640px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.kpi{background:#fff;border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:4px;padding:10px 11px}
 .kpi.g{border-top-color:var(--gold)}.kpi.t{border-top-color:var(--teal)}.kpi.a{border-top-color:var(--amber)}
-.kpi .k{font:600 8.5px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
-.kpi .v{font:700 17px/1.15 Georgia,serif;color:var(--navy);margin-top:4px}
-.kpi .d{font-size:10px;color:var(--gray);margin-top:2px}
-.sec{margin:12px 14px 0}
-.sec h2{font-family:Georgia,serif;font-size:14px;color:var(--navy);margin-bottom:7px;display:flex;align-items:center;gap:8px}
-.sec h2::after{content:"";flex:1;height:1px;background:var(--rule)}
-.card{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:11px}
-.donutbox{position:relative;height:170px}
-.leg{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px 10px}
-.leg span{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--ink)}
-.leg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.kpi .k{font:600 9.5px/1 -apple-system,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+.kpi .v{font:700 18px/1.15 Georgia,serif;color:var(--navy);margin-top:6px}
+.kpi .d{font-size:11px;color:var(--gray);margin-top:2px}
+.sec h2{font:700 15px/1.2 Georgia,serif;color:var(--navy);margin:16px 0 8px}
+.card{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:12px}
+.donutbox{position:relative;height:190px}
+.leg{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:11.5px}
+.leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--rule);border-radius:16px;padding:4px 10px;background:#fff;font-size:11.5px;display:flex;gap:6px;align-items:baseline}
-.chip b{font-family:Georgia,serif;color:var(--navy)}
-.pos{color:var(--pos);font-weight:700}.neg{color:var(--neg);font-weight:700}.zero{color:var(--gray)}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:var(--navy);color:#fff;font:600 8.5px/1.2 sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:7px 6px;text-align:right}
-th:first-child{text-align:left;border-radius:6px 0 0 0}th:last-child{border-radius:0 6px 0 0}
-td{padding:7px 6px;text-align:right;border-bottom:1px solid #EEEAE0;white-space:nowrap;font-variant-numeric:tabular-nums}
-td:first-child{text-align:left}
-.tk{font-family:Georgia,serif;font-weight:700;color:var(--navy);font-size:12.5px}
-.lay{display:block;font-size:9px;color:var(--gray);margin-top:1px}
-.pesob{display:inline-block;height:5px;border-radius:2px;background:var(--gold);opacity:.85;vertical-align:middle}
-.wl td{font-size:11.5px}
-.wl .nota{white-space:normal;font-size:10px;color:#3a4658;text-align:left}
-.state{padding:56px 20px;text-align:center;color:var(--gray)}
-.spin{width:24px;height:24px;border:3px solid var(--rule);border-top-color:var(--gold);border-radius:50%;display:inline-block;animation:s .8s linear infinite;margin-bottom:10px}
-@keyframes s{to{transform:rotate(360deg)}}
-.err{color:var(--red);font-size:12.5px;max-width:420px;margin:0 auto;line-height:1.5}
-.foot{margin:16px 14px 0;color:var(--gray);font-size:9.5px;line-height:1.5;border-top:1px solid var(--rule);padding-top:8px}
-.upd{font-size:10px;color:#cdd8ea;text-align:right;float:right;margin-top:-32px}
+.chip{border:1px solid var(--rule);border-radius:16px;padding:4px 10px;font-size:12.5px;background:#fff}
+.chip b{font-family:Georgia,serif;color:var(--navy);margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+th{background:var(--navy);color:#fff;font:600 10px/1.2 -apple-system,sans-serif;letter-spacing:.05em;text-transform:uppercase;padding:7px 8px;text-align:right}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid #EEEAE0;text-align:right;white-space:nowrap}
+.tk{font:700 13px Georgia,serif;color:var(--navy);display:block}.lay{font-size:10.5px;color:var(--gray)}
+.pos{color:var(--pos);font-weight:600}.neg{color:var(--neg);font-weight:600}.zero{color:var(--gray)}
+td.nota{white-space:normal;text-align:left;font-size:11.5px;color:#3a4658}
+.state{padding:40px 8px;text-align:center;color:var(--gray)}.err{color:var(--neg)}
+.lock{max-width:360px;margin:40px auto;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:20px}
+.lock h2{font:700 17px Georgia,serif;color:var(--navy);margin:0 0 6px}
+.lock p{font-size:12.5px;color:var(--gray);margin:0 0 12px}
+.lock input[type=password]{width:100%;padding:11px;border:1px solid var(--rule);border-radius:4px;font-size:16px}
+.lock label{display:flex;gap:8px;align-items:center;font-size:12.5px;margin:10px 0}
+.lock button,.sair{background:var(--navy);color:#fff;border:none;border-radius:4px;padding:11px 14px;font:600 14px -apple-system,sans-serif;width:100%}
+.sair{background:none;color:var(--gray);width:auto;padding:4px 0;font-size:12px;text-decoration:underline;margin-top:18px}
+.teste{background:#F3EEF8;border:1px solid #7A5C99;border-left:4px solid #7A5C99;border-radius:4px;padding:9px 11px;margin-top:12px;font-size:12px}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div class="kick">Capital Lens · ao vivo</div>
-  <h1>Cockpit — Carteira AI Infra</h1>
-  <div class="sub">GOOGLEFINANCE ~15-20 min · publicação ~5 min · <span id="upd">carregando…</span></div>
-</div>
-<div id="root"><div class="state"><div class="spin"></div><div>Lendo o Cockpit…</div></div></div>
-<div class="foot">Fonte: aba Feed publicada do Cockpit Live (Google Sheets). G/P não realizado, sem IR/corretagem. Recarrega sozinho a cada 5 min. Material de acompanhamento pessoal.</div>
+<div class="hdr"><div class="kick">Cockpit · Capital Lens</div><div class="ttl">Carteira AI Infra</div><div class="upd" id="upd">—</div></div>
+<div class="wrap" id="root"><div class="state">Carregando…</div></div>
 <script>
-// >>> URL do CSV publicado da aba Feed (File > Publicar na web > aba Feed > CSV) <<<
-const FEED_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRPexk4MHu9YoW8H-boS8eThBevVRNDPefv9TbHNpyz8wRwdfdG8YGUEifpcZRXatSn6zlaxH9aTu7F/pub?gid=628478336&single=true&output=csv';
+const KEY_STORE='cl_cel_chave_v1';
+const MC={'Memory/HBM':'#C8A24B','Storage NAND':'#D08F2C','Storage HDD':'#D08F2C','Storage Ctrl':'#D08F2C','Custom Silicon':'#2C7A7B','Foundry':'#2C7A7B','Compute':'#2C7A7B',
+ 'Hyperscaler':'#0B1F3A','Networking':'#3E6E8E','Networking Opt':'#3E6E8E','Networking Conn':'#3E6E8E','Phys Infra Cooling':'#4FA0A1','Phys Infra Grid':'#4FA0A1',
+ 'Financing':'#7A5C99','Industrial':'#5B6677','Industrial Aerospace':'#5B6677','Test/Meas':'#8C8A3E','Test & Measurement':'#8C8A3E','Neocloud':'#8E5572',
+ 'Nuclear':'#9E7F38','Quantum':'#B0413E','Caixa USD':'#C9D2E0'};
+const ok=n=>typeof n==='number'&&Number.isFinite(n);
+const fU=n=>ok(n)?'US$ '+n.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+const fB=n=>ok(n)?'R$ '+n.toLocaleString('pt-BR',{maximumFractionDigits:0}):'—';
+const fP=n=>ok(n)?(n>0?'+':'')+n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'—';
+const fX=n=>ok(n)?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+const cls=n=>!ok(n)||n===0?'zero':(n>0?'pos':'neg');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const un64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const to64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
+const hora=iso=>iso?new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+let feed=null, chart=null;
 
-function num(s){if(s==null)return NaN;s=String(s).trim().replace(/^"|"$/g,'').replace(/[%\s]/g,'');
- if(s===''||s==='—'||s==='-')return NaN;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s);}
-const fU=n=>isFinite(n)?'US$ '+n.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
-const fB=n=>isFinite(n)?'R$ '+n.toLocaleString('pt-BR',{maximumFractionDigits:0}):'—';
-const fP=n=>isFinite(n)?(n>0?'+':'')+n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'—';
-const fX=n=>isFinite(n)?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
-const cls=n=>!isFinite(n)||n===0?'zero':(n>0?'pos':'neg');
-const MC={'Memory/HBM':'#C8A24B','Storage NAND':'#D08F2C','Storage HDD':'#D08F2C','Storage Ctrl':'#D08F2C',
- 'Custom Silicon':'#2C7A7B','Foundry':'#2C7A7B','Hyperscaler':'#0B1F3A','Networking':'#3E6E8E','Networking Opt':'#3E6E8E','Networking Conn':'#3E6E8E',
- 'Phys Infra Cooling':'#4FA0A1','Phys Infra Grid':'#4FA0A1','Financing':'#7A5C99','Industrial Aerospace':'#5B6677',
- 'Test & Measurement':'#8C8A3E','Test/Meas':'#8C8A3E','Quantum':'#B0413E','Caixa USD':'#C9D2E0'};
-
-function parseCSV(t){
-  const rows=[];let row=[],cur='',q=false;
-  for(let i=0;i<t.length;i++){const c=t[i];
-    if(q){ if(c==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
-    else{ if(c==='"')q=true; else if(c===','){row.push(cur);cur='';}
-      else if(c==='\n'||c==='\r'){ if(cur!==''||row.length){row.push(cur);rows.push(row);row=[];cur='';} }
-      else cur+=c; } }
-  if(cur!==''||row.length){row.push(cur);rows.push(row);}
-  return rows;
+async function baixar(){
+  const r=await fetch('feed.enc.json?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
 }
-function render(rows){
-  const pos=[],watch=[];let meta={};
-  for(const r of rows){
-    const t=(r[0]||'').trim().toUpperCase();
-    if(t==='META') meta={fx:num(r[2]),caixa:num(r[3]),tot:num(r[4]),gp:num(r[5])};
-    else if(t==='POS') pos.push({tk:r[1],layer:r[2],px:num(r[3]),dd:num(r[4]),val:num(r[5]),peso:num(r[6]),gp:num(r[7]),gpp:num(r[8])});
-    else if(t==='WATCH') watch.push({tk:r[1],layer:r[2],px:num(r[3]),dd:num(r[4]),nota:r[5]||''});
-  }
-  if(!pos.length){document.getElementById('root').innerHTML='<div class="state err">Feed lido, mas sem posições — confira a aba Feed no Sheet.</div>';return;}
-  pos.sort((a,b)=>b.val-a.val);
-  const totBRL=meta.tot*meta.fx, maxP=Math.max(...pos.map(p=>p.peso||0));
-  const byD=[...pos].filter(p=>isFinite(p.dd)).sort((a,b)=>b.dd-a.dd);
-  const agg={};for(const p of pos){agg[p.layer]=(agg[p.layer]||0)+(p.val||0);}
-  if(meta.caixa>0)agg['Caixa USD']=(agg['Caixa USD']||0)+meta.caixa;
+async function chaveDaSenha(senha,f){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(senha),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:un64(f.sal),iterations:f.iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},true,['decrypt']);
+}
+async function abrir(chave,f){
+  const txt=await crypto.subtle.decrypt({name:'AES-GCM',iv:un64(f.iv)},chave,un64(f.dados));
+  return JSON.parse(new TextDecoder().decode(txt));
+}
+function guardada(f){
+  try{const g=JSON.parse(localStorage.getItem(KEY_STORE)||'null'); return g&&g.sal===f.sal?g.k:null;}catch(e){return null;}
+}
+function pedirSenha(msg){
+  document.getElementById('root').innerHTML=`<div class="lock"><h2>Cockpit trancado</h2><p>${msg||'Digite a senha do celular, a mesma definida no notebook.'}</p>
+   <form id="f"><input type="password" id="s" autocomplete="current-password" placeholder="Senha" required>
+   <label><input type="checkbox" id="lembrar" checked> Lembrar neste aparelho</label><button>Abrir</button></form></div>`;
+  document.getElementById('f').addEventListener('submit',async e=>{
+    e.preventDefault(); const s=document.getElementById('s').value, lembrar=document.getElementById('lembrar').checked;
+    try{const k=await chaveDaSenha(s,feed); const d=await abrir(k,feed);
+      if(lembrar){try{localStorage.setItem(KEY_STORE,JSON.stringify({sal:feed.sal,k:to64(await crypto.subtle.exportKey('raw',k))}));}catch(_){}}
+      render(d);
+    }catch(_){pedirSenha('Senha não confere. Tente de novo.');}
+  });
+}
+async function carregar(){
+  try{ feed=await baixar(); }catch(e){ document.getElementById('root').innerHTML='<div class="state err">Não consegui baixar os dados ('+esc(e.message)+'). Confira a conexão e recarregue.</div>'; return; }
+  const g=guardada(feed);
+  if(g){ try{ const k=await crypto.subtle.importKey('raw',un64(g),{name:'AES-GCM'},false,['decrypt']); return render(await abrir(k,feed)); }catch(_){ } }
+  pedirSenha();
+}
+function render(d){
+  const pos=[...d.pos].sort((a,b)=>(b.val||0)-(a.val||0)), tot=d.totUS, maxP=Math.max(...pos.map(p=>p.peso||0));
+  const byD=pos.filter(p=>ok(p.dday)).sort((a,b)=>b.dday-a.dday);
+  const agg={}; for(const p of pos) agg[p.layer]=(agg[p.layer]||0)+(p.val||0); if(d.caixa>0) agg['Caixa USD']=(agg['Caixa USD']||0)+d.caixa;
   const alloc=Object.entries(agg).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
-
-  let h='<div class="kpis">';
-  h+=`<div class="kpi"><div class="k">Patrimônio US$</div><div class="v">${fU(meta.tot)}</div><div class="d">câmbio ${isFinite(meta.fx)?meta.fx.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</div></div>`;
-  h+=`<div class="kpi g"><div class="k">Patrimônio R$</div><div class="v">${fB(totBRL)}</div><div class="d">${pos.length} posições + caixa</div></div>`;
-  h+=`<div class="kpi t"><div class="k">G/P aberto</div><div class="v ${cls(meta.gp)}">${isFinite(meta.gp)?(meta.gp>0?'+':'')+fU(meta.gp).replace('US$ ','US$ '):'—'}</div></div>`;
-  h+=`<div class="kpi a"><div class="k">Caixa US$</div><div class="v">${fU(meta.caixa)}</div><div class="d">${isFinite(meta.caixa/meta.tot)?(meta.caixa/meta.tot*100).toFixed(1)+'% da carteira':''}</div></div>`;
-  h+='</div>';
-
+  let h='';
+  if(d.sintetico) h+='<div class="teste"><b>Dados de teste.</b> Quantidades e custos inventados; preços reais.</div>';
+  h+='<div class="kpis">'+
+    `<div class="kpi"><div class="k">Patrimônio US$</div><div class="v">${fU(tot)}</div><div class="d">câmbio ${ok(d.cambio)?d.cambio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>`+
+    `<div class="kpi g"><div class="k">Patrimônio R$</div><div class="v">${fB(d.totBRL)}</div><div class="d">${pos.length} posições + caixa</div></div>`+
+    `<div class="kpi t"><div class="k">G/P aberto</div><div class="v ${cls(d.gpTot)}">${d.gpTot>0?'+':''}${fU(d.gpTot)}</div></div>`+
+    `<div class="kpi a"><div class="k">Caixa US$</div><div class="v">${fU(d.caixa)}</div><div class="d">${tot?(d.caixa/tot*100).toFixed(1)+'% da carteira':''}</div></div></div>`;
   h+='<div class="sec"><h2>Alocação por camada</h2><div class="card"><div class="donutbox"><canvas id="dn"></canvas></div><div class="leg">'+
-     alloc.map(a=>`<span><i style="background:${MC[a.k]||'#5B6677'}"></i>${a.k} ${(a.v/meta.tot*100).toFixed(0)}%</span>`).join('')+'</div></div></div>';
-
+    alloc.map(a=>`<span><i style="background:${MC[a.k]||'#5B6677'}"></i>${esc(a.k)} ${(a.v/tot*100).toFixed(0)}%</span>`).join('')+'</div></div></div>';
   h+='<div class="sec"><h2>Movimento do dia</h2><div class="card"><div class="chips">'+
-     byD.slice(0,3).map(p=>`<div class="chip"><b>${p.tk}</b><span class="pos">${fP(p.dd)}</span></div>`).join('')+
-     byD.slice(-3).reverse().map(p=>`<div class="chip"><b>${p.tk}</b><span class="neg">${fP(p.dd)}</span></div>`).join('')+'</div></div></div>';
-
-  h+='<div class="sec"><h2>Posições</h2><div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Ativo</th><th>Peso</th><th>D dia</th><th>Valor</th><th>G/P %</th></tr></thead><tbody>';
-  for(const p of pos){
-    const bw=maxP>0?Math.max(3,p.peso/maxP*34):0;
-    h+=`<tr><td><span class="tk">${p.tk}</span><span class="lay">${p.layer||''}</span></td>`+
-       `<td>${isFinite(p.peso)?p.peso.toFixed(1)+'%':'—'} <span class="pesob" style="width:${bw}px"></span></td>`+
-       `<td class="${cls(p.dd)}">${fP(p.dd)}</td><td>${fU(p.val)}</td><td class="${cls(p.gpp)}">${fP(p.gpp)}</td></tr>`;
-  }
-  h+='</tbody></table></div></div>';
-
-  if(watch.length){
-    h+='<div class="sec"><h2>Watchlist</h2><div class="card" style="padding:0;overflow:hidden"><table class="wl"><thead><tr><th>Ativo</th><th>Preço</th><th>D dia</th><th>Nota</th></tr></thead><tbody>'+
-      watch.map(w=>`<tr><td><span class="tk">${w.tk}</span><span class="lay">${w.layer||''}</span></td><td>${fX(w.px)}</td><td class="${cls(w.dd)}">${fP(w.dd)}</td><td class="nota">${w.nota}</td></tr>`).join('')+
-      '</tbody></table></div></div>';
-  }
+    byD.slice(0,3).map(p=>`<div class="chip"><b>${esc(p.tk)}</b><span class="${cls(p.dday)}">${fP(p.dday)}</span></div>`).join('')+
+    byD.slice(-3).reverse().map(p=>`<div class="chip"><b>${esc(p.tk)}</b><span class="${cls(p.dday)}">${fP(p.dday)}</span></div>`).join('')+'</div></div></div>';
+  h+='<div class="sec"><h2>Posições</h2><div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Ativo</th><th>Peso</th><th>D dia</th><th>Valor</th><th>G/P %</th></tr></thead><tbody>'+
+    pos.map(p=>`<tr><td><span class="tk">${esc(p.tk)}</span><span class="lay">${esc(p.layer)}</span></td><td>${ok(p.peso)?p.peso.toFixed(1)+'%':'—'}</td><td class="${cls(p.dday)}">${fP(p.dday)}</td><td>${fU(p.val)}</td><td class="${cls(p.gpp)}">${fP(p.gpp)}</td></tr>`).join('')+
+    '</tbody></table></div></div>';
+  if(d.watch.length) h+='<div class="sec"><h2>Watchlist</h2><div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Ativo</th><th>Preço</th><th>D dia</th><th>Nota</th></tr></thead><tbody>'+
+    d.watch.map(w=>`<tr><td><span class="tk">${esc(w.tk)}</span><span class="lay">${esc(w.layer)}</span></td><td>${fX(w.price)}</td><td class="${cls(w.dday)}">${fP(w.dday)}</td><td class="nota">${esc(w.note)}</td></tr>`).join('')+'</tbody></table></div></div>';
+  h+='<button class="sair" id="sair">Esquecer a senha neste aparelho</button>';
   document.getElementById('root').innerHTML=h;
-  document.getElementById('upd').textContent='atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  const c=document.getElementById('dn');
-  if(c&&window.Chart){new Chart(c,{type:'doughnut',data:{labels:alloc.map(a=>a.k),
+  document.getElementById('upd').textContent='preços de '+hora(d.precosEm)+' · enviado do notebook às '+hora(d.geradoEm);
+  document.getElementById('sair').onclick=()=>{try{localStorage.removeItem(KEY_STORE);}catch(_){} location.reload();};
+  if(window.Chart){ if(chart) chart.destroy(); chart=new Chart(document.getElementById('dn'),{type:'doughnut',data:{labels:alloc.map(a=>a.k),
     datasets:[{data:alloc.map(a=>a.v),backgroundColor:alloc.map(a=>MC[a.k]||'#5B6677'),borderColor:'#fff',borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:x=>` ${x.label}: ${fU(x.parsed)}`}}}}});}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',animation:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>` ${x.label}: ${fU(x.parsed)}`}}}}}); }
 }
-async function load(){
-  const root=document.getElementById('root');
-  if(FEED_URL.startsWith('COLE_AQUI')){root.innerHTML='<div class="state err">Falta plugar a URL do feed publicado (File → Publicar na web → aba Feed → CSV) na constante FEED_URL deste arquivo.</div>';return;}
-  try{
-    const r=await fetch(FEED_URL+(FEED_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    render(parseCSV(await r.text()));
-  }catch(e){root.innerHTML='<div class="state err">Não consegui ler o feed agora ('+(e.message||e)+').<br>Verifique a conexão e recarregue.</div>';}
-}
-load();
-setInterval(load, 5*60*1000);
+carregar();
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') carregar(); });
 </script>
 </body>
 </html>
