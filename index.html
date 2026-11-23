@@ -11,7 +11,10 @@
 :root{--navy:#0B1F3A;--ink:#1A2A44;--gold:#C8A24B;--teal:#2C7A7B;--gray:#5B6677;--rule:#C9D2E0;--pos:#1E7A6B;--neg:#B0413E;--bg:#F4F1EA;--amber:#D08F2C}
 *{box-sizing:border-box}html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-.hdr{background:var(--navy);color:#fff;padding:16px 16px 12px;box-shadow:0 1px 0 var(--gold)}
+.hdr{background:var(--navy);color:#fff;padding:16px 16px 12px;box-shadow:0 1px 0 var(--gold);display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.btn-upd{flex:none;background:var(--gold);color:var(--navy);border:none;border-radius:16px;padding:8px 13px;font:700 13px -apple-system,"Segoe UI",sans-serif;margin-top:2px}
+.btn-upd:disabled{opacity:.7}.btn-upd[hidden]{display:none}
+.aviso{background:#FFF7E6;border:1px solid var(--amber);border-left:4px solid var(--amber);border-radius:4px;padding:9px 11px;margin-top:12px;font-size:12px}
 .kick{font:600 10px/1 -apple-system,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
 .ttl{font:700 20px/1.2 Georgia,serif;margin-top:4px}
 .upd{font-size:11px;color:#B9C6DC;margin-top:4px}
@@ -49,7 +52,8 @@ td.nota{white-space:normal;text-align:left;font-size:11.5px;color:#3a4658}
 </style>
 </head>
 <body>
-<div class="hdr"><div class="kick">Cockpit · Capital Lens</div><div class="ttl">Carteira AI Infra</div><div class="upd" id="upd">—</div></div>
+<div class="hdr"><div><div class="kick">Cockpit · Capital Lens</div><div class="ttl">Carteira AI Infra</div><div class="upd" id="upd">—</div></div>
+<button class="btn-upd" id="btn-upd" hidden>↻ Atualizar</button></div>
 <div class="wrap" id="root"><div class="state">Carregando…</div></div>
 <script>
 const KEY_STORE='cl_cel_chave_v1';
@@ -67,7 +71,60 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const un64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 const to64=b=>btoa(String.fromCharCode(...new Uint8Array(b)));
 const hora=iso=>iso?new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
-let feed=null, chart=null;
+let feed=null, chart=null, chave=null, vivo=null;   // vivo: últimas cotações buscadas pelo botão {q, em}
+// Cotação pública da CNBC: aceita pedido direto do navegador (o Yahoo, usado no notebook, não aceita).
+// Sai daqui só a lista de tickers; quantidades e valores nunca saem do aparelho.
+const CNBC='https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&symbols=';
+const num=s=>{const n=parseFloat(String(s??'').replace(/[,%+]/g,''));return Number.isFinite(n)?n:null;};
+async function cotacoes(tks){
+  const out={};
+  for(let i=0;i<tks.length;i+=40){
+    const r=await fetch(CNBC+encodeURIComponent(tks.slice(i,i+40).join('|')),{cache:'no-store',referrerPolicy:'no-referrer'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    for(const q of (j.FormattedQuoteResult&&j.FormattedQuoteResult.FormattedQuote)||[]){
+      const last=num(q.last), prev=num(q.previous_day_closing);
+      if(q.code===0&&ok(last)&&last>0) out[q.symbol]={last,prev};
+    }
+  }
+  return out;
+}
+function aplicar(d,q,em){
+  const n=JSON.parse(JSON.stringify(d)); let semCot=0;
+  for(const p of n.pos){
+    const c=q[p.tk];
+    const qtd=ok(p.qtd)?p.qtd:(ok(p.val)&&ok(p.price)&&p.price?p.val/p.price:null);
+    const custo=ok(p.custo)?p.custo:(ok(p.val)&&ok(p.gp)?p.val-p.gp:null);
+    if(!c||!ok(qtd)){semCot++;continue;}
+    p.price=c.last; p.dday=ok(c.prev)&&c.prev?(c.last/c.prev-1)*100:null; p.val=qtd*c.last;
+    if(ok(custo)){p.gp=p.val-custo; p.gpp=custo?p.gp/custo*100:null;}
+  }
+  for(const w of n.watch){const c=q[w.tk]; if(!c) continue; w.price=c.last; w.dday=ok(c.prev)&&c.prev?(c.last/c.prev-1)*100:null;}
+  n.totUS=n.pos.reduce((s,p)=>s+(ok(p.val)?p.val:0),0)+(n.caixa||0);
+  for(const p of n.pos) p.peso=ok(p.val)&&n.totUS?p.val/n.totUS*100:null;
+  n.gpTot=n.pos.reduce((s,p)=>s+(ok(p.gp)?p.gp:0),0);
+  if(q['BRL=']) n.cambio=q['BRL='].last;
+  n.totBRL=ok(n.cambio)?n.totUS*n.cambio:null;
+  n.precosEm=em; n.aoVivo=true; n.semCot=semCot;
+  return n;
+}
+async function atualizar(){
+  const b=document.getElementById('btn-upd'); b.disabled=true; b.textContent='Atualizando…';
+  const volta=t=>{b.disabled=false; b.textContent='↻ Atualizar'; if(t) document.getElementById('upd').textContent=t;};
+  let d=null, aviso='';
+  try{ feed=await baixar(); }   // carteira mais nova que o notebook tiver enviado
+  catch(e){ return volta('Sem conexão agora ('+e.message+'). Tente de novo em instantes.'); }
+  try{ d=await abrir(chave,feed); }
+  catch(_){ try{ localStorage.removeItem(KEY_STORE); }catch(e){} volta(); return pedirSenha('A senha mudou no notebook. Digite a nova.'); }
+  try{
+    const q=await cotacoes([...new Set([...d.pos.map(p=>p.tk),...d.watch.map(w=>w.tk),'BRL='])]);
+    if(!Object.keys(q).length) throw new Error('nenhuma cotação');
+    vivo={q,em:new Date().toISOString()}; d=aplicar(d,q,vivo.em);
+  }catch(e){ aviso='Não consegui buscar os preços agora ('+e.message+'). Mostrando os últimos que já tinha. Tente de novo em instantes.'; d=comVivo(d); }
+  render(d,aviso);
+  if(aviso) return volta();
+  b.disabled=false; b.textContent='✓ Atualizado'; setTimeout(()=>{b.textContent='↻ Atualizar';},3000);
+}
 
 async function baixar(){
   const r=await fetch('feed.enc.json?t='+Date.now(),{cache:'no-store'});
@@ -86,30 +143,35 @@ function guardada(f){
   try{const g=JSON.parse(localStorage.getItem(KEY_STORE)||'null'); return g&&g.sal===f.sal?g.k:null;}catch(e){return null;}
 }
 function pedirSenha(msg){
+  document.getElementById('btn-upd').hidden=true;
   document.getElementById('root').innerHTML=`<div class="lock"><h2>Cockpit trancado</h2><p>${msg||'Digite a senha do celular, a mesma definida no notebook.'}</p>
    <form id="f"><input type="password" id="s" autocomplete="current-password" placeholder="Senha" required>
    <label><input type="checkbox" id="lembrar" checked> Lembrar neste aparelho</label><button>Abrir</button></form></div>`;
   document.getElementById('f').addEventListener('submit',async e=>{
     e.preventDefault(); const s=document.getElementById('s').value, lembrar=document.getElementById('lembrar').checked;
-    try{const k=await chaveDaSenha(s,feed); const d=await abrir(k,feed);
+    try{const k=await chaveDaSenha(s,feed); const d=await abrir(k,feed); chave=k;
       if(lembrar){try{localStorage.setItem(KEY_STORE,JSON.stringify({sal:feed.sal,k:to64(await crypto.subtle.exportKey('raw',k))}));}catch(_){}}
-      render(d);
+      render(comVivo(d));
     }catch(_){pedirSenha('Senha não confere. Tente de novo.');}
   });
 }
 async function carregar(){
   try{ feed=await baixar(); }catch(e){ document.getElementById('root').innerHTML='<div class="state err">Não consegui baixar os dados ('+esc(e.message)+'). Confira a conexão e recarregue.</div>'; return; }
   const g=guardada(feed);
-  if(g){ try{ const k=await crypto.subtle.importKey('raw',un64(g),{name:'AES-GCM'},false,['decrypt']); return render(await abrir(k,feed)); }catch(_){ } }
+  if(g){ try{ const k=await crypto.subtle.importKey('raw',un64(g),{name:'AES-GCM'},false,['decrypt']); const d=await abrir(k,feed); chave=k; return render(comVivo(d)); }catch(_){ } }
   pedirSenha();
 }
-function render(d){
+// ao voltar para a aba: se os preços buscados no celular forem mais novos que os do notebook, continuam valendo
+function comVivo(d){ return vivo&&new Date(vivo.em)>new Date(d.precosEm)?aplicar(d,vivo.q,vivo.em):d; }
+function render(d,aviso){
   const pos=[...d.pos].sort((a,b)=>(b.val||0)-(a.val||0)), tot=d.totUS, maxP=Math.max(...pos.map(p=>p.peso||0));
   const byD=pos.filter(p=>ok(p.dday)).sort((a,b)=>b.dday-a.dday);
   const agg={}; for(const p of pos) agg[p.layer]=(agg[p.layer]||0)+(p.val||0); if(d.caixa>0) agg['Caixa USD']=(agg['Caixa USD']||0)+d.caixa;
   const alloc=Object.entries(agg).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
   let h='';
   if(d.sintetico) h+='<div class="teste"><b>Dados de teste.</b> Quantidades e custos inventados; preços reais.</div>';
+  if(aviso) h+='<div class="aviso">'+esc(aviso)+'</div>';
+  else if(d.aoVivo&&d.semCot) h+='<div class="aviso">'+d.semCot+' posição(ões) sem cotação nova; ficaram com o preço do notebook.</div>';
   h+='<div class="kpis">'+
     `<div class="kpi"><div class="k">Patrimônio US$</div><div class="v">${fU(tot)}</div><div class="d">câmbio ${ok(d.cambio)?d.cambio.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</div></div>`+
     `<div class="kpi g"><div class="k">Patrimônio R$</div><div class="v">${fB(d.totBRL)}</div><div class="d">${pos.length} posições + caixa</div></div>`+
@@ -127,7 +189,10 @@ function render(d){
     d.watch.map(w=>`<tr><td><span class="tk">${esc(w.tk)}</span><span class="lay">${esc(w.layer)}</span></td><td>${fX(w.price)}</td><td class="${cls(w.dday)}">${fP(w.dday)}</td><td class="nota">${esc(w.note)}</td></tr>`).join('')+'</tbody></table></div></div>';
   h+='<button class="sair" id="sair">Esquecer a senha neste aparelho</button>';
   document.getElementById('root').innerHTML=h;
-  document.getElementById('upd').textContent='preços de '+hora(d.precosEm)+' · enviado do notebook às '+hora(d.geradoEm);
+  document.getElementById('upd').textContent=d.aoVivo
+    ?'preços buscados no celular às '+hora(d.precosEm)+' · carteira enviada do notebook em '+hora(d.geradoEm)
+    :'preços de '+hora(d.precosEm)+' · enviado do notebook em '+hora(d.geradoEm);
+  const b=document.getElementById('btn-upd'); b.hidden=false; b.onclick=atualizar;
   document.getElementById('sair').onclick=()=>{try{localStorage.removeItem(KEY_STORE);}catch(_){} location.reload();};
   if(window.Chart){ if(chart) chart.destroy(); chart=new Chart(document.getElementById('dn'),{type:'doughnut',data:{labels:alloc.map(a=>a.k),
     datasets:[{data:alloc.map(a=>a.v),backgroundColor:alloc.map(a=>MC[a.k]||'#5B6677'),borderColor:'#fff',borderWidth:2}]},
